@@ -1,0 +1,283 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client-js"
+  //output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id           String  @id @default(uuid())
+  nome         String
+  email        String  @unique
+  senha        String
+  telefone     String?
+  departamento String?
+  cargo        String?
+  perfil       Role    @default(REQUISITANTE)
+
+  // Configurações
+  forcarTrocaSenha Boolean @default(false)
+  statusAtivo      Boolean @default(true)
+  notificaEmail    Boolean @default(true)
+  notificaPush     Boolean @default(false)
+
+  // Permissões
+  permissoes Json?
+
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  requisicoes Requisicao[]
+}
+
+enum Role {
+  REQUISITANTE
+  COMPRAS_PROCUREMENT
+  RECEBIMENTO_ARMAZEM
+  QUALIDADE_QA
+  ADMIN
+}
+
+model Produto {
+  id String @id @default(uuid())
+
+  // Aba 1: Geral
+  sku                   String  @unique
+  codigo_barras_interno String?
+  descricao             String
+  categoria             String
+  unidade_medida        String
+  tamanho_embalagem     String?
+  marca                 String?
+  observacoes           String?
+  status_ativo          Boolean @default(true)
+
+  // Aba 2: Requisitos de Validade
+  vida_util_dias            Int     @default(0)
+  politica_expedicao        String  @default("FEFO")
+  tipo_controle_validade    String  @default("PORCENTAGEM")
+  validade_min_recebimento  Float   @default(70.0)
+  validade_min_cliente_dias Int     @default(0)
+  alertas_habilitados       Boolean @default(true)
+  alertas_dias_config       Json?
+  alerta_personalizado_dias Int     @default(0)
+
+  // Aba 3: Rastreabilidade
+  controle_lote              Boolean @default(false)
+  controle_numero_serie      Boolean @default(false)
+  ficha_tecnica_obrigatoria  Boolean @default(false)
+  certificacoes_obrigatorias Boolean @default(false)
+  dias_quarentena            Int     @default(0)
+
+  // Aba 4: Armazenagem
+  condicao_temperatura   String  @default("Ambiente")
+  condicao_umidade       String  @default("Ambiente")
+  restricoes_armazenagem Json? // Guarda array de strings: ["Frágil", "Manter Seco"]
+  peso_unidade           Float   @default(0.0)
+  unidade_peso           String  @default("KG")
+  comprimento_cm         Float   @default(0.0)
+  largura_cm             Float   @default(0.0)
+  altura_cm              Float   @default(0.0)
+  empilhamento_maximo    Int     @default(0)
+  tipo_palete            String  @default("Sem Palete")
+  instrucoes_especiais   String?
+
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  requisicaoItens RequisicaoItem[]
+  lotesEstoque    LoteEstoque[]
+}
+
+model Fornecedor {
+  id String @id @default(uuid())
+
+  // Aba 1: Geral
+  razao_social          String
+  nome_fantasia         String?
+  nuit                  String  @unique
+  tipo_pessoa           String  @default("JURIDICA")
+  email_principal       String
+  email_secundario      String?
+  telefone_principal    String
+  telefone_secundario   String?
+  website               String?
+  cobrança_rua         String
+  cobrança_numero      String?
+  cobrança_complemento String?
+  cobrança_bairro      String
+  cobrança_cidade      String
+  cobrança_provincia   String
+  cobrança_cep         String?
+  cobrança_pais        String  @default("Moçambique")
+  mesmo_endereco        Boolean @default(true)
+  entrega_rua           String?
+  entrega_numero        String?
+  entrega_complemento   String?
+  entrega_bairro        String?
+  entrega_cidade        String?
+  entrega_provincia     String?
+  entrega_cep           String?
+  entrega_pais          String? @default("Moçambique")
+  status_ativo          Boolean @default(true)
+  situacao              String  @default("Normal")
+
+  // Aba 2: Documentos
+  cert_iso9001  Boolean @default(false)
+  cert_iso22000 Boolean @default(false)
+  cert_haccp    Boolean @default(false)
+  cert_organico Boolean @default(false)
+  cert_kosher   Boolean @default(false)
+  cert_halal    Boolean @default(false)
+  cert_outras   Boolean @default(false)
+  //documentos           FornecedorDocumento[]
+
+  // Aba 3: Condições comerciais, Financeiras e SLAs
+  incoterm             String @default("EXW")
+  prazo_pagamento_dias Int    @default(30)
+  moeda                String @default("MZN")
+  desconto_porcentagem Float  @default(0.0)
+  prazo_entrega_dias   Int    @default(0)
+  formas_pagamento     Json?
+
+  valor_minimo_pedido  Float @default(0.0)
+  valor_maximo_credito Float @default(0.0)
+
+  sla_resposta_cotacao_h Int @default(24)
+  sla_validade_lote_h    Int @default(48)
+  sla_lead_time_dias     Int @default(0)
+
+  categorias_fornecidas Json?
+  obs_categorias        String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Local {
+  id     String @id @default(uuid())
+  codigo String @unique
+  nome   String
+  tipo   String
+
+  // Condições de Armazenagem
+  temperatura_controlada Boolean @default(false)
+  humidade_controlada    Boolean @default(false)
+  protegido_luz          Boolean @default(false)
+  area_segregada         Boolean @default(false)
+  quarentena             Boolean @default(false)
+  bloqueado              Boolean @default(false)
+
+  // Capacidade
+  capacidade_maxima Int @default(0)
+  capacidade_atual  Int @default(0)
+
+  // 🌳 Hierarquia Auto-referenciável (Adiciona suporte para sub-locais infinitos)
+  local_pai_id String?
+  local_pai    Local?  @relation("HierarquiaLocais", fields: [local_pai_id], references: [id], onDelete: Cascade)
+  sublocais    Local[] @relation("HierarquiaLocais")
+  lotesEstoque    LoteEstoque[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([local_pai_id])
+}
+
+model Requisicao {
+  id                    String    @id @default(uuid())
+  codigo                String    @unique // Ex: RI-2025-XXX
+  usuario_id            String
+  usuario               User      @relation(fields: [usuario_id], references: [id])
+  solicitante_nome      String // Captura o nome no momento da criação (ex: João Silva)
+  departamento          String // Ex: Cozinha
+  centro_custo          String // Ex: CC-001 - Cozinha
+  date_criacao          DateTime  @default(now())
+  date_necessaria       DateTime? // Campo Data Necessária do form
+  prioridade            String    @default("NORMAL") // BAIXA, NORMAL, ALTA, URGENTE
+  justificativa         String? // O campo "Justificativa" do cabeçalho
+  status                String    @default("DRAFT") // DRAFT, PENDING, APPROVED, REJECTED, FULFILLED
+  justificativa_negacao String? // Justificativa do gestor ao rejeitar
+
+  itens RequisicaoItem[]
+  // anexos           RequisicaoAnexo[] // Para o futuro upload de ficheiros
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([usuario_id])
+}
+
+model RequisicaoItem {
+  id            String     @id @default(uuid())
+  requisicao_id String
+  requisicao    Requisicao @relation(fields: [requisicao_id], references: [id], onDelete: Cascade)
+  produto_id    String
+  produto       Produto    @relation(fields: [produto_id], references: [id])
+  quantidade    Int // Quantidade pedida
+
+  // Campo "Validade Mínima" do Popup
+  validade_min_proposta Float? // O valor numérico (ex: 80 ou 90)
+  validade_min_tipo     String? // "PERCENTAGEM" ou "DIAS" (conforme o dropdown da imagem 2)
+
+  observacoes String? // Campo "Observações sobre este Item" do popup
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([requisicao_id])
+  @@index([produto_id])
+}
+
+
+model LoteEstoque {
+  id                   String     @id @default(uuid())
+  produto_id           String
+  produto              Produto    @relation(fields: [produto_id], references: [id])
+  
+  // Dados do Lote (Ex: LOT2025-001)
+  codigo_lote          String     
+  data_fabricacao      DateTime?
+  data_validade        DateTime
+  
+  // Localização física exata (Nó folha da hierarquia: Posição ou Prateleira)
+  local_id             String
+  local                Local      @relation(fields: [local_id], references: [id])
+  
+  // Quantidades e Valores
+  quantidade           Int        @default(0) // Qtd atual em stock (ex: 500)
+  valor_unitario       Float      // Valor unitário do produto neste lote (ex: 18.50)
+  
+  // Estado do Lote (Disponível, Bloqueado, Quarentena)
+  status               String     @default("DISPONIVEL") // DISPONIVEL, BLOQUEADO, QUARENTENA
+  
+  createdAt            DateTime   @default(now())
+  updatedAt            DateTime   @updatedAt
+
+  @@unique([produto_id, codigo_lote, local_id]) // Evita duplicar o mesmo lote no mesmo local físico
+  @@index([produto_id])
+  @@index([local_id])
+  @@index([data_validade])
+}
+
+
+model MovimentacaoEstoque {
+  id            String   @id @default(uuid())
+  produto_id    String
+  codigo_lote   String?
+  tipo          String   // ENTRADA, SAIDA, TRANSFERENCIA, AJUSTE
+  quantidade    Int
+  origem_id     String?  // ID do Local de origem (se aplicável)
+  destino_id    String?  // ID do Local de destino (se aplicável)
+  justificativa String?
+  usuario_id    String
+  createdAt     DateTime @default(now())
+
+  @@index([produto_id])
+  @@map("movimentacoes_estoque")
+}

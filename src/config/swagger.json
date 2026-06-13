@@ -1,0 +1,1627 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "StockSafe API",
+        "version": "1.0.0",
+        "description": "Documentação completa dos endpoints do sistema de gestão de stock StockSafe"
+    },
+    "servers": [
+        {
+            "url": "http://localhost:3333",
+            "description": "Servidor de Desenvolvimento Local"
+        }
+    ],
+    "paths": {
+        "/login": {
+            "post": {
+                "summary": "Autenticação de utilizadores",
+                "tags": [
+                    "Autenticação"
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/LoginRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Autenticação realizada com sucesso",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/LoginResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Credenciais inválidas"
+                    },
+                    "500": {
+                        "description": "Erro interno do servidor"
+                    }
+                }
+            }
+        },
+        "/usuarios": {
+            "post": {
+                "summary": "Cadastrar um novo utilizador",
+                "tags": [
+                    "Utilizadores"
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/UsuarioInput"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Utilizador criado com sucesso",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UsuarioResponse"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Falha na validação ou e-mail já registado"
+                    }
+                }
+            },
+            "get": {
+                "summary": "Listar todos os utilizadores",
+                "tags": [
+                    "Utilizadores"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lista de utilizadores",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/UsuarioResponse"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/usuarios/{id}": {
+            "get": {
+                "summary": "Obter dados de um utilizador específico",
+                "tags": [
+                    "Utilizadores"
+                ],
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Utilizador encontrado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UsuarioResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Utilizador não encontrado"
+                    }
+                }
+            },
+            "put": {
+                "summary": "Atualizar dados de um utilizador",
+                "tags": [
+                    "Utilizadores"
+                ],
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/UsuarioInput"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Utilizador atualizado com sucesso",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UsuarioResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Utilizador não encontrado"
+                    }
+                }
+            },
+            "delete": {
+                "summary": "Eliminar um utilizador",
+                "tags": [
+                    "Utilizadores"
+                ],
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Utilizador eliminado com sucesso"
+                    },
+                    "404": {
+                        "description": "Utilizador não encontrado"
+                    }
+                }
+            }
+        },
+        "/produtos": {
+            "post": {
+                "summary": "Cadastrar um ou mais produtos",
+                "tags": [
+                    "Produtos"
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "oneOf": [
+                                    { "$ref": "#/components/schemas/ProdutoInput" },
+                                    { "type": "array", "items": { "$ref": "#/components/schemas/ProdutoInput" } }
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Produto criado com sucesso"
+                    },
+                    "400": {
+                        "description": "Falha na validação ou SKU duplicado"
+                    }
+                }
+            },
+            "get": {
+                "summary": "Listar todos os produtos",
+                "tags": [
+                    "Produtos"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lista de produtos"
+                    }
+                }
+            }
+        },
+        "/produtos/{id}": {
+            "get": {
+                "summary": "Obter dados de um produto específico",
+                "tags": [
+                    "Produtos"
+                ],
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Produto encontrado"
+                    },
+                    "404": {
+                        "description": "Produto não encontrado"
+                    }
+                }
+            },
+            "put": {
+                "summary": "Atualizar um produto específico",
+                "tags": [
+                    "Produtos"
+                ],
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ProdutoInput"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Produto atualizado com sucesso"
+                    },
+                    "404": {
+                        "description": "Produto não encontrado"
+                    }
+                }
+            },
+            "delete": {
+                "summary": "Eliminar um produto",
+                "tags": [
+                    "Produtos"
+                ],
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Produto eliminado com sucesso"
+                    },
+                    "404": {
+                        "description": "Produto não encontrado"
+                    }
+                }
+            }
+        },
+        "/fornecedores": {
+            "post": {
+                "summary": "Cadastrar um ou mais fornecedores",
+                "tags": [
+                    "Fornecedores"
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "oneOf": [
+                                    { "$ref": "#/components/schemas/FornecedorInput" },
+                                    { "type": "array", "items": { "$ref": "#/components/schemas/FornecedorInput" } }
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Fornecedor criado com sucesso"
+                    },
+                    "400": {
+                        "description": "Falha na validação ou NUIT duplicado"
+                    }
+                }
+            },
+            "get": {
+                "summary": "Listar todos os fornecedores",
+                "tags": [
+                    "Fornecedores"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lista de fornecedores"
+                    }
+                }
+            }
+        },
+        "/fornecedores/{id}": {
+            "get": {
+                "summary": "Obter dados de um fornecedor específico",
+                "tags": [
+                    "Fornecedores"
+                ],
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Fornecedor encontrado"
+                    },
+                    "404": {
+                        "description": "Fornecedor não encontrado"
+                    }
+                }
+            },
+            "put": {
+                "summary": "Atualizar dados de um fornecedor",
+                "tags": [
+                    "Fornecedores"
+                ],
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/FornecedorInput"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Fornecedor atualizado com sucesso"
+                    },
+                    "404": {
+                        "description": "Fornecedor não encontrado"
+                    }
+                }
+            },
+            "delete": {
+                "summary": "Eliminar um fornecedor",
+                "tags": [
+                    "Fornecedores"
+                ],
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Fornecedor eliminado com sucesso"
+                    },
+                    "404": {
+                        "description": "Fornecedor não encontrado"
+                    }
+                }
+            }
+        },
+        "/locais": {
+            "post": {
+                "summary": "Cadastrar um ou mais locais logísticos",
+                "tags": [
+                    "Locais"
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "oneOf": [
+                                    { "$ref": "#/components/schemas/LocalInput" },
+                                    { "type": "array", "items": { "$ref": "#/components/schemas/LocalInput" } }
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Local criado com sucesso"
+                    },
+                    "400": {
+                        "description": "Falha na validação ou código já existente"
+                    }
+                }
+            },
+            "get": {
+                "summary": "Listar todos os locais logísticos",
+                "tags": [
+                    "Locais"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lista de locais logísticos"
+                    }
+                }
+            }
+        },
+        "/locais/{id}": {
+            "get": {
+                "summary": "Obter dados de um local específico",
+                "tags": [
+                    "Locais"
+                ],
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Local encontrado"
+                    },
+                    "404": {
+                        "description": "Local não encontrado"
+                    }
+                }
+            },
+            "put": {
+                "summary": "Atualizar dados de um local específico",
+                "tags": [
+                    "Locais"
+                ],
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/LocalInput"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Local atualizado com sucesso"
+                    },
+                    "404": {
+                        "description": "Local não encontrado"
+                    }
+                }
+            },
+            "delete": {
+                "summary": "Eliminar um local",
+                "tags": [
+                    "Locais"
+                ],
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Local eliminado com sucesso"
+                    },
+                    "404": {
+                        "description": "Local não encontrado"
+                    }
+                }
+            }
+        },
+        "/requisicoes": {
+            "post": {
+                "summary": "Cadastrar uma ou mais requisições internas",
+                "tags": [
+                    "Requisições Internas"
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "oneOf": [
+                                    { "$ref": "#/components/schemas/RequisicaoInput" },
+                                    { "type": "array", "items": { "$ref": "#/components/schemas/RequisicaoInput" } }
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Requisição criada com sucesso"
+                    },
+                    "400": {
+                        "description": "Falha na validação"
+                    }
+                }
+            },
+            "get": {
+                "summary": "Listar todas as requisições",
+                "tags": [
+                    "Requisições Internas"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lista de requisições"
+                    }
+                }
+            }
+        },
+        "/requisicoes/{id}": {
+            "get": {
+                "summary": "Obter dados de uma requisição específica",
+                "tags": [
+                    "Requisições Internas"
+                ],
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Requisição encontrada"
+                    },
+                    "404": {
+                        "description": "Requisição não encontrada"
+                    }
+                }
+            }
+        },
+        "/requisicoes/{id}/avaliar": {
+            "patch": {
+                "summary": "Avaliar uma requisição (Aprovar ou Rejeitar)",
+                "tags": [
+                    "Requisições Internas"
+                ],
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/RequisicaoAvaliarInput"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Requisição avaliada com sucesso"
+                    },
+                    "400": {
+                        "description": "Falha na validação"
+                    },
+                    "404": {
+                        "description": "Requisição não encontrada"
+                    }
+                }
+            }
+        },
+        "/estoque/consultar": {
+            "get": {
+                "summary": "Consultar estado atual do estoque",
+                "tags": [
+                    "Estoque"
+                ],
+                "parameters": [
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "categoria",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "faixa_validade",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": ["TODOS", "VENCIDOS", "7_DIAS", "15_DIAS", "30_DIAS", "60_DIAS", "MAIOR_60"]
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lista de produtos e lotes no estoque"
+                    }
+                }
+            }
+        },
+        "/estoque/painel-kpi": {
+            "get": {
+                "summary": "Obter indicadores/KPIs do painel de estoque",
+                "tags": [
+                    "Estoque"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Dados estatísticos e analíticos do estoque"
+                    }
+                }
+            }
+        },
+        "/estoque/entrada": {
+            "post": {
+                "summary": "Registar uma ou mais entradas de mercadoria no armazém",
+                "tags": [
+                    "Estoque"
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "oneOf": [
+                                    { "$ref": "#/components/schemas/EstoqueEntradaInput" },
+                                    { "type": "array", "items": { "$ref": "#/components/schemas/EstoqueEntradaInput" } }
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Entrada registada com sucesso"
+                    },
+                    "404": {
+                        "description": "Localização ou produto não encontrado"
+                    }
+                }
+            }
+        },
+        "/estoque/saida": {
+            "post": {
+                "summary": "Registar uma ou mais saídas automáticas de mercadoria via FEFO",
+                "tags": [
+                    "Estoque"
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "oneOf": [
+                                    { "$ref": "#/components/schemas/EstoqueSaidaInput" },
+                                    { "type": "array", "items": { "$ref": "#/components/schemas/EstoqueSaidaInput" } }
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Saída processada com sucesso"
+                    },
+                    "400": {
+                        "description": "Estoque insuficiente"
+                    }
+                }
+            }
+        },
+        "/validade/metricas": {
+            "get": {
+                "summary": "Obter métricas e cartões de validade para o painel",
+                "tags": [
+                    "Validade"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Métricas obtidas com sucesso"
+                    }
+                }
+            }
+        },
+        "/validade/produtos-criticos": {
+            "get": {
+                "summary": "Listar produtos com validade crítica (tabela)",
+                "tags": [
+                    "Validade"
+                ],
+                "parameters": [
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "categoria",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lista de produtos críticos obtida com sucesso"
+                    }
+                }
+            }
+        },
+        "/validade/descartar": {
+            "post": {
+                "summary": "Descartar lote individual por validade vencida/crítica",
+                "tags": [
+                    "Validade"
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "loteId": {
+                                        "type": "string",
+                                        "format": "uuid"
+                                    },
+                                    "usuarioId": {
+                                        "type": "string"
+                                    }
+                                },
+                                "required": [
+                                    "loteId"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Lote descartado com sucesso"
+                    },
+                    "400": {
+                        "description": "Lote sem estoque ou erro"
+                    },
+                    "404": {
+                        "description": "Lote não encontrado"
+                    }
+                }
+            }
+        },
+        "/validade/descartar-em-massa": {
+            "post": {
+                "summary": "Descartar todos os lotes vencidos em massa",
+                "tags": [
+                    "Validade"
+                ],
+                "requestBody": {
+                    "required": false,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "usuarioId": {
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Descarte em massa realizado com sucesso"
+                    }
+                }
+            }
+        },
+        "/validade/campanha": {
+            "post": {
+                "summary": "Mover lote vencendo para campanha promocional",
+                "tags": [
+                    "Validade"
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "loteId": {
+                                        "type": "string",
+                                        "format": "uuid"
+                                    }
+                                },
+                                "required": [
+                                    "loteId"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Lote colocado em campanha com sucesso"
+                    },
+                    "404": {
+                        "description": "Lote não encontrado"
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "LoginRequest": {
+                "type": "object",
+                "properties": {
+                    "email": {
+                        "type": "string",
+                        "format": "email",
+                        "example": "admin@stocksafe.com"
+                    },
+                    "password": {
+                        "type": "string",
+                        "example": "123456"
+                    }
+                },
+                "required": [
+                    "email",
+                    "password"
+                ]
+            },
+            "LoginResponse": {
+                "type": "object",
+                "properties": {
+                    "token": {
+                        "type": "string"
+                    },
+                    "user": {
+                        "type": "object",
+                        "properties": {
+                            "id": {
+                                "type": "string"
+                            },
+                            "nome": {
+                                "type": "string"
+                            },
+                            "email": {
+                                "type": "string"
+                            },
+                            "perfil": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "UsuarioInput": {
+                "type": "object",
+                "properties": {
+                    "nome_completo": {
+                        "type": "string",
+                        "example": "João Silva"
+                    },
+                    "email": {
+                        "type": "string",
+                        "format": "email",
+                        "example": "joao.silva@stocksafe.com"
+                    },
+                    "senha": {
+                        "type": "string",
+                        "example": "minhasenha123"
+                    },
+                    "telefone": {
+                        "type": "string",
+                        "example": "+258 84 123 4567"
+                    },
+                    "departamento": {
+                        "type": "string",
+                        "example": "TI"
+                    },
+                    "cargo": {
+                        "type": "string",
+                        "example": "Administrador do Sistema"
+                    },
+                    "perfil": {
+                        "type": "string",
+                        "enum": [
+                            "REQUISITANTE",
+                            "COMPRAS_PROCUREMENT",
+                            "RECEBIMENTO_ARMAZEM",
+                            "QUALIDADE_QA",
+                            "ADMIN"
+                        ],
+                        "example": "ADMIN"
+                    },
+                    "forcar_troca_senha": {
+                        "type": "boolean",
+                        "default": false
+                    },
+                    "status_ativo": {
+                        "type": "boolean",
+                        "default": true
+                    },
+                    "notificacao_email": {
+                        "type": "boolean",
+                        "default": true
+                    },
+                    "notificacao_push": {
+                        "type": "boolean",
+                        "default": false
+                    }
+                },
+                "required": [
+                    "nome_completo",
+                    "email",
+                    "senha"
+                ]
+            },
+            "UsuarioResponse": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string"
+                    },
+                    "nome_completo": {
+                        "type": "string"
+                    },
+                    "email": {
+                        "type": "string"
+                    },
+                    "telefone": {
+                        "type": "string"
+                    },
+                    "departamento": {
+                        "type": "string"
+                    },
+                    "cargo": {
+                        "type": "string"
+                    },
+                    "perfil": {
+                        "type": "string"
+                    },
+                    "status_ativo": {
+                        "type": "boolean"
+                    },
+                    "createdAt": {
+                        "type": "string"
+                    },
+                    "updatedAt": {
+                        "type": "string"
+                    }
+                }
+            },
+            "ProdutoInput": {
+                "type": "object",
+                "properties": {
+                    "sku": {
+                        "type": "string",
+                        "example": "PROD-001"
+                    },
+                    "codigo_barras_interno": {
+                        "type": "string"
+                    },
+                    "descricao": {
+                        "type": "string",
+                        "example": "Farinha de Trigo Especial"
+                    },
+                    "categoria": {
+                        "type": "string",
+                        "example": "Alimentos"
+                    },
+                    "unidade_medida": {
+                        "type": "string",
+                        "example": "KG"
+                    },
+                    "tamanho_embalagem": {
+                        "type": "string"
+                    },
+                    "marca": {
+                        "type": "string"
+                    },
+                    "observacoes": {
+                        "type": "string"
+                    },
+                    "status_ativo": {
+                        "type": "boolean",
+                        "default": true
+                    },
+                    "vida_util_dias": {
+                        "type": "integer",
+                        "default": 365
+                    },
+                    "politica_expedicao": {
+                        "type": "string",
+                        "default": "FEFO"
+                    },
+                    "tipo_controle_validade": {
+                        "type": "string",
+                        "default": "PORCENTAGEM"
+                    },
+                    "validade_min_recebimento": {
+                        "type": "number",
+                        "default": 70.0
+                    },
+                    "validade_min_cliente_dias": {
+                        "type": "integer",
+                        "default": 0
+                    },
+                    "alertas_habilitados": {
+                        "type": "boolean",
+                        "default": true
+                    },
+                    "alerta_personalizado_dias": {
+                        "type": "integer",
+                        "default": 0
+                    },
+                    "controle_lote": {
+                        "type": "boolean",
+                        "default": true
+                    },
+                    "controle_numero_serie": {
+                        "type": "boolean",
+                        "default": false
+                    },
+                    "ficha_tecnica_obrigatoria": {
+                        "type": "boolean",
+                        "default": false
+                    },
+                    "certificacoes_obrigatorias": {
+                        "type": "boolean",
+                        "default": false
+                    },
+                    "dias_quarentena": {
+                        "type": "integer",
+                        "default": 0
+                    },
+                    "condicao_temperatura": {
+                        "type": "string",
+                        "default": "Ambiente"
+                    },
+                    "condicao_umidade": {
+                        "type": "string",
+                        "default": "Ambiente"
+                    },
+                    "peso_unidade": {
+                        "type": "number",
+                        "default": 1.0
+                    },
+                    "unidade_peso": {
+                        "type": "string",
+                        "default": "KG"
+                    },
+                    "comprimento_cm": {
+                        "type": "number",
+                        "default": 10
+                    },
+                    "largura_cm": {
+                        "type": "number",
+                        "default": 10
+                    },
+                    "altura_cm": {
+                        "type": "number",
+                        "default": 20
+                    },
+                    "empilhamento_maximo": {
+                        "type": "integer",
+                        "default": 10
+                    },
+                    "tipo_palete": {
+                        "type": "string",
+                        "default": "Sem Palete"
+                    },
+                    "instrucoes_especiais": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "sku",
+                    "descricao",
+                    "categoria",
+                    "unidade_medida"
+                ]
+            },
+            "FornecedorInput": {
+                "type": "object",
+                "properties": {
+                    "razao_social": {
+                        "type": "string",
+                        "example": "Distribuidora Nacional LDA"
+                    },
+                    "nome_fantasia": {
+                        "type": "string"
+                    },
+                    "nuit": {
+                        "type": "string",
+                        "example": "400123456"
+                    },
+                    "tipo_pessoa": {
+                        "type": "string",
+                        "default": "JURIDICA"
+                    },
+                    "email_principal": {
+                        "type": "string",
+                        "format": "email",
+                        "example": "contacto@distribuidora.co.mz"
+                    },
+                    "email_secundario": {
+                        "type": "string"
+                    },
+                    "telefone_principal": {
+                        "type": "string",
+                        "example": "+258 21 345 678"
+                    },
+                    "telefone_secundario": {
+                        "type": "string"
+                    },
+                    "website": {
+                        "type": "string"
+                    },
+                    "cobrança_rua": {
+                        "type": "string",
+                        "example": "Av. Eduardo Mondlane"
+                    },
+                    "cobrança_numero": {
+                        "type": "string"
+                    },
+                    "cobrança_complemento": {
+                        "type": "string"
+                    },
+                    "cobrança_bairro": {
+                        "type": "string",
+                        "example": "Central"
+                    },
+                    "cobrança_cidade": {
+                        "type": "string",
+                        "example": "Maputo"
+                    },
+                    "cobrança_provincia": {
+                        "type": "string",
+                        "example": "Maputo Cidade"
+                    },
+                    "cobrança_cep": {
+                        "type": "string"
+                    },
+                    "cobrança_pais": {
+                        "type": "string",
+                        "default": "Moçambique"
+                    },
+                    "mesmo_endereco": {
+                        "type": "boolean",
+                        "default": true
+                    },
+                    "entrega_rua": {
+                        "type": "string"
+                    },
+                    "entrega_numero": {
+                        "type": "string"
+                    },
+                    "entrega_complemento": {
+                        "type": "string"
+                    },
+                    "entrega_bairro": {
+                        "type": "string"
+                    },
+                    "entrega_cidade": {
+                        "type": "string"
+                    },
+                    "entrega_provincia": {
+                        "type": "string"
+                    },
+                    "entrega_cep": {
+                        "type": "string"
+                    },
+                    "entrega_pais": {
+                        "type": "string"
+                    },
+                    "status_ativo": {
+                        "type": "boolean",
+                        "default": true
+                    },
+                    "situacao": {
+                        "type": "string",
+                        "default": "Normal"
+                    },
+                    "cert_iso9001": {
+                        "type": "boolean",
+                        "default": false
+                    },
+                    "cert_iso22000": {
+                        "type": "boolean",
+                        "default": false
+                    },
+                    "cert_haccp": {
+                        "type": "boolean",
+                        "default": false
+                    },
+                    "cert_organico": {
+                        "type": "boolean",
+                        "default": false
+                    },
+                    "cert_kosher": {
+                        "type": "boolean",
+                        "default": false
+                    },
+                    "cert_halal": {
+                        "type": "boolean",
+                        "default": false
+                    },
+                    "cert_outras": {
+                        "type": "boolean",
+                        "default": false
+                    },
+                    "incoterm": {
+                        "type": "string",
+                        "default": "EXW"
+                    },
+                    "prazo_pagamento_dias": {
+                        "type": "integer",
+                        "default": 30
+                    },
+                    "moeda": {
+                        "type": "string",
+                        "default": "MZN"
+                    },
+                    "desconto_porcentagem": {
+                        "type": "number",
+                        "default": 0.0
+                    },
+                    "prazo_entrega_dias": {
+                        "type": "integer",
+                        "default": 0
+                    },
+                    "valor_minimo_pedido": {
+                        "type": "number",
+                        "default": 0.0
+                    },
+                    "valor_maximo_credito": {
+                        "type": "number",
+                        "default": 0.0
+                    },
+                    "sla_resposta_cotacao_h": {
+                        "type": "integer",
+                        "default": 24
+                    },
+                    "sla_validade_lote_h": {
+                        "type": "integer",
+                        "default": 48
+                    },
+                    "sla_lead_time_dias": {
+                        "type": "integer",
+                        "default": 0
+                    },
+                    "obs_categorias": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "razao_social",
+                    "nuit",
+                    "email_principal",
+                    "telefone_principal",
+                    "cobrança_rua",
+                    "cobrança_bairro",
+                    "cobrança_cidade",
+                    "cobrança_provincia"
+                ]
+            },
+            "LocalInput": {
+                "type": "object",
+                "properties": {
+                    "codigo": {
+                        "type": "string",
+                        "example": "LOC-A-01"
+                    },
+                    "nome": {
+                        "type": "string",
+                        "example": "Armazém Principal - Corredor A"
+                    },
+                    "tipo": {
+                        "type": "string",
+                        "enum": [
+                            "ARMAZEM",
+                            "ZONA",
+                            "CORREDOR",
+                            "PRATELEIRA",
+                            "POSICAO"
+                        ],
+                        "example": "CORREDOR"
+                    },
+                    "temperatura_controlada": {
+                        "type": "boolean",
+                        "default": false
+                    },
+                    "humidade_controlada": {
+                        "type": "boolean",
+                        "default": false
+                    },
+                    "protegido_luz": {
+                        "type": "boolean",
+                        "default": false
+                    },
+                    "area_segregada": {
+                        "type": "boolean",
+                        "default": false
+                    },
+                    "quarentena": {
+                        "type": "boolean",
+                        "default": false
+                    },
+                    "bloqueado": {
+                        "type": "boolean",
+                        "default": false
+                    },
+                    "capacidade_maxima": {
+                        "type": "integer",
+                        "default": 100
+                    },
+                    "capacidade_atual": {
+                        "type": "integer",
+                        "default": 0
+                    },
+                    "local_pai_id": {
+                        "type": "string",
+                        "format": "uuid"
+                    }
+                },
+                "required": [
+                    "codigo",
+                    "nome",
+                    "tipo"
+                ]
+            },
+            "RequisicaoInput": {
+                "type": "object",
+                "properties": {
+                    "solicitante_nome": {
+                        "type": "string",
+                        "example": "João Silva"
+                    },
+                    "departamento": {
+                        "type": "string",
+                        "example": "Cozinha"
+                    },
+                    "centro_custo": {
+                        "type": "string",
+                        "example": "CC-001"
+                    },
+                    "date_necessaria": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "prioridade": {
+                        "type": "string",
+                        "enum": [
+                            "BAIXA",
+                            "NORMAL",
+                            "ALTA",
+                            "URGENTE"
+                        ],
+                        "default": "NORMAL"
+                    },
+                    "justificativa": {
+                        "type": "string"
+                    },
+                    "itens": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "produto_id": {
+                                    "type": "string",
+                                    "format": "uuid"
+                                },
+                                "quantidade": {
+                                    "type": "integer",
+                                    "minimum": 1
+                                },
+                                "validade_min_proposta": {
+                                    "type": "number"
+                                },
+                                "validade_min_tipo": {
+                                    "type": "string",
+                                    "enum": [
+                                        "PERCENTAGEM",
+                                        "DIAS"
+                                    ]
+                                },
+                                "observacoes": {
+                                    "type": "string"
+                                }
+                            },
+                            "required": [
+                                "produto_id",
+                                "quantidade"
+                            ]
+                        }
+                    }
+                },
+                "required": [
+                    "solicitante_nome",
+                    "departamento",
+                    "centro_custo",
+                    "itens"
+                ]
+            },
+            "RequisicaoAvaliarInput": {
+                "type": "object",
+                "properties": {
+                    "status": {
+                        "type": "string",
+                        "enum": [
+                            "APPROVED",
+                            "REJECTED"
+                        ]
+                    },
+                    "justificativa_negacao": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "status"
+                ]
+            },
+            "EstoqueEntradaInput": {
+                "type": "object",
+                "properties": {
+                    "produto_id": {
+                        "type": "string"
+                    },
+                    "codigo_lote": {
+                        "type": "string"
+                    },
+                    "data_validade": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "local_id": {
+                        "type": "string"
+                    },
+                    "quantidade": {
+                        "type": "integer"
+                    },
+                    "valor_unitario": {
+                        "type": "number"
+                    },
+                    "usuario_id": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "produto_id",
+                    "codigo_lote",
+                    "data_validade",
+                    "local_id",
+                    "quantidade",
+                    "valor_unitario"
+                ]
+            },
+            "EstoqueSaidaInput": {
+                "type": "object",
+                "properties": {
+                    "produto_id": {
+                        "type": "string"
+                    },
+                    "quantidade_solicitada": {
+                        "type": "integer"
+                    },
+                    "justificativa": {
+                        "type": "string"
+                    },
+                    "usuario_id": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "produto_id",
+                    "quantidade_solicitada",
+                    "usuario_id"
+                ]
+            }
+        }
+    }
+}
