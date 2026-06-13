@@ -38,7 +38,7 @@ const app = express();
 
 // Configuração do CORS para o Next.js
 app.use(cors({
-    origin: 'http://localhost:3000',
+    origin: '*',
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
     allowedHeaders: ['Content-Type', 'Authorization', 'x-user-id']
 }));
