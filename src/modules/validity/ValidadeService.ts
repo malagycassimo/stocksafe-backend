@@ -429,4 +429,48 @@ export class ValidadeService {
             lote: loteAtualizado
         };
     }
+
+    async criarCampanhaValidade(dados: { descontoPct: number; loteIds: string[] }) {
+        const year = new Date().getFullYear();
+        const count = await prisma.campanhaValidade.count();
+        const codigo = `CMP-${year}-${String(count + 1).padStart(3, '0')}`;
+
+        // Verify all batches exist
+        for (const loteId of dados.loteIds) {
+            const lote = await prisma.loteEstoque.findUnique({
+                where: { id: loteId }
+            });
+            if (!lote) {
+                throw new AppError(`Lote com ID '${loteId}' não encontrado.`, 404);
+            }
+        }
+
+        const campanha = await prisma.campanhaValidade.create({
+            data: {
+                codigo,
+                descontoPct: dados.descontoPct,
+                status: 'ATIVA',
+                lotesCampanha: {
+                    create: dados.loteIds.map(loteId => ({
+                        loteId
+                    }))
+                }
+            }
+        });
+
+        // Update all batches to status 'CAMPANHA'
+        for (const loteId of dados.loteIds) {
+            await prisma.loteEstoque.update({
+                where: { id: loteId },
+                data: { status: 'CAMPANHA' }
+            });
+        }
+
+        return {
+            id: campanha.id,
+            codigo: campanha.codigo,
+            status: campanha.status,
+            descontoPct: campanha.descontoPct
+        };
+    }
 }

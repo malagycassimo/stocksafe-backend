@@ -1,5 +1,6 @@
 import type { Request, Response, NextFunction } from 'express';
 import { ValidadeService } from './ValidadeService.js';
+import { AppError } from '../../middlewares/errorHandler.js';
 
 export class ValidadeController {
     // GET /validade/metricas
@@ -55,6 +56,22 @@ export class ValidadeController {
             const validadeService = new ValidadeService();
             const resultado = await validadeService.criarCampanha(loteId);
             res.status(200).json(resultado);
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    // POST /validade/campanhas
+    async criarCampanhaValidade(req: Request, res: Response, next: NextFunction): Promise<void> {
+        try {
+            const { descontoPct, loteIds } = req.body;
+            if (descontoPct === undefined || !loteIds || !Array.isArray(loteIds) || loteIds.length === 0) {
+                throw new AppError('Os campos descontoPct e loteIds são obrigatórios.', 400);
+            }
+
+            const validadeService = new ValidadeService();
+            const resultado = await validadeService.criarCampanhaValidade({ descontoPct, loteIds });
+            res.status(201).json(resultado);
         } catch (error) {
             next(error);
         }

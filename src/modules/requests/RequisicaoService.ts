@@ -3,6 +3,35 @@ import { AppError } from '../../middlewares/errorHandler.js';
 
 export class RequisicaoService {
     async create(usuario_id: string, dados: any) {
+        // Verificar se todos os produtos existem antes de criar a requisição
+        const produtoIds: string[] = [];
+        if (Array.isArray(dados)) {
+            dados.forEach(item => {
+                if (item.itens && Array.isArray(item.itens)) {
+                    item.itens.forEach((subItem: any) => {
+                        if (subItem.produto_id) produtoIds.push(subItem.produto_id);
+                    });
+                }
+            });
+        } else if (dados.itens && Array.isArray(dados.itens)) {
+            dados.itens.forEach((item: any) => {
+                if (item.produto_id) produtoIds.push(item.produto_id);
+            });
+        }
+
+        if (produtoIds.length > 0) {
+            const produtosExistentes = await prisma.produto.findMany({
+                where: { id: { in: produtoIds } },
+                select: { id: true }
+            });
+            const idsExistentes = new Set(produtosExistentes.map(p => p.id));
+            const idsInexistentes = produtoIds.filter(id => !idsExistentes.has(id));
+
+            if (idsInexistentes.length > 0) {
+                throw new AppError(`Os seguintes IDs de produtos não existem no sistema: ${idsInexistentes.join(', ')}`, 400);
+            }
+        }
+
         if (Array.isArray(dados)) {
             const result = [];
             for (const item of dados) {

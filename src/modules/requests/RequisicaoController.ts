@@ -2,15 +2,24 @@ import type { Request, Response, NextFunction } from 'express';
 import { RequisicaoService } from './RequisicaoService.js';
 import { createRequisicaoBulkSchema, analiseRequisicaoSchema } from '../../validators.js';
 import { AppError } from '../../middlewares/errorHandler.js';
+import { prisma } from '../../lib/prisma.js';
 
 export class RequisicaoController {
     async create(req: Request, res: Response, next: NextFunction): Promise<void> {
         try {
             const dadosValidados = createRequisicaoBulkSchema.parse(req.body);
 
-            const usuario_id = req.headers['x-user-id'] as string;
+            let usuario_id = req.headers['x-user-id'] as string;
             if (!usuario_id) {
-                throw new AppError('O ID do utilizador (x-user-id) é obrigatório no cabeçalho da requisição para testes.', 400);
+                // Tenta obter o primeiro utilizador ativo como fallback para testes de API / Swagger
+                const defaultUser = await prisma.user.findFirst({
+                    where: { statusAtivo: true }
+                });
+                if (defaultUser) {
+                    usuario_id = defaultUser.id;
+                } else {
+                    throw new AppError('O ID do utilizador (x-user-id) é obrigatório no cabeçalho da requisição para testes.', 400);
+                }
             }
 
             const requisicaoService = new RequisicaoService();

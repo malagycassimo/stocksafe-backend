@@ -7,6 +7,11 @@ import { RequisicaoController } from './modules/requests/RequisicaoController.js
 import { EstoqueController } from './modules/stock/EstoqueController.js';
 import { AuthController } from './modules/auth/AuthController.js';
 import { ValidadeController } from './modules/validity/ValidadeController.js';
+import { PurchasingController } from './modules/purchasing/PurchasingController.js';
+import { ReceivingController } from './modules/receiving/ReceivingController.js';
+import { QualityController } from './modules/quality/QualityController.js';
+import { InventoryController } from './modules/inventory/InventoryController.js';
+import { ShippingController } from './modules/shipping/ShippingController.js';
 
 const routes = Router();
 const usuarioController = new UsuarioController();
@@ -17,6 +22,11 @@ const requisicaoController = new RequisicaoController();
 const estoqueController = new EstoqueController();
 const authController = new AuthController();
 const validadeController = new ValidadeController();
+const purchasingController = new PurchasingController();
+const receivingController = new ReceivingController();
+const qualityController = new QualityController();
+const inventoryController = new InventoryController();
+const shippingController = new ShippingController();
 
 
 
@@ -74,5 +84,39 @@ routes.get('/validade/produtos-criticos', (req, res, next) => validadeController
 routes.post('/validade/descartar', (req, res, next) => validadeController.descartar(req, res, next));
 routes.post('/validade/descartar-em-massa', (req, res, next) => validadeController.descartarEmMassa(req, res, next));
 routes.post('/validade/campanha', (req, res, next) => validadeController.campanha(req, res, next));
+routes.post('/validade/campanhas', (req, res, next) => validadeController.criarCampanhaValidade(req, res, next));
+
+// 🛒 Rotas de Compras
+routes.get('/rfqs', (req, res, next) => purchasingController.listRFQs(req, res, next));
+routes.get('/rfqs/:id', (req, res, next) => purchasingController.getRFQ(req, res, next));
+routes.post('/rfqs', (req, res, next) => purchasingController.createRFQ(req, res, next));
+routes.post('/propostas', (req, res, next) => purchasingController.submitProposta(req, res, next));
+routes.get('/rfqs/:id/propostas', (req, res, next) => purchasingController.getComparativoPropostas(req, res, next));
+
+// 🚚 Rotas de Recebimento
+routes.post('/recebimento/checkin', (req, res, next) => receivingController.createCheckIn(req, res, next));
+routes.post('/recebimento/conferencia', (req, res, next) => receivingController.submitConferencia(req, res, next));
+routes.post('/purchase-orders', (req, res, next) => receivingController.createPurchaseOrder(req, res, next));
+routes.get('/purchase-orders', (req, res, next) => receivingController.listPurchaseOrders(req, res, next));
+routes.get('/purchase-orders/:id', (req, res, next) => receivingController.getPurchaseOrder(req, res, next));
+
+// 🔬 Rotas de Qualidade
+routes.post('/qualidade/inspecao', (req, res, next) => qualityController.createInspecao(req, res, next));
+routes.get('/qualidade/inspecao', (req, res, next) => qualityController.listInspecoes(req, res, next));
+routes.get('/qualidade/quarentena', (req, res, next) => qualityController.listQuarentena(req, res, next));
+routes.get('/qualidade/quarentena/:id', (req, res, next) => qualityController.getQuarantineItem(req, res, next));
+
+// 🗄️ Rotas de Inventários
+routes.get('/inventarios', (req, res, next) => inventoryController.listInventarios(req, res, next));
+routes.get('/inventarios/:id', (req, res, next) => inventoryController.getInventario(req, res, next));
+routes.post('/inventarios', (req, res, next) => inventoryController.createInventario(req, res, next));
+routes.post('/inventarios/:id/contar', (req, res, next) => inventoryController.submeterContagem(req, res, next));
+routes.post('/inventarios/:id/ajustar', (req, res, next) => inventoryController.ajustarInventario(req, res, next));
+
+// 📦 Rotas de Expedição (Shipping)
+routes.get('/expedicao/ordens', (req, res, next) => shippingController.listPickingOrders(req, res, next));
+routes.get('/expedicao/ordens/:id', (req, res, next) => shippingController.getPickingOrder(req, res, next));
+routes.post('/expedicao/ordens', (req, res, next) => shippingController.createPickingOrder(req, res, next));
+routes.post('/expedicao/picking/concluir', (req, res, next) => shippingController.concluirPicking(req, res, next));
 
 export default routes;

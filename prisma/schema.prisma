@@ -92,6 +92,10 @@ model Produto {
   updatedAt       DateTime         @updatedAt
   requisicaoItens RequisicaoItem[]
   lotesEstoque    LoteEstoque[]
+  rfqItems        RFQItem[]
+  propostaItems   PropostaItem[]
+  inventarioItems InventarioItem[]
+  pickingItens    PickingItem[]
 }
 
 model Fornecedor {
@@ -157,6 +161,8 @@ model Fornecedor {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  propostas PropostaFornecedor[]
+  purchaseOrders PurchaseOrder[]
 }
 
 model Local {
@@ -280,4 +286,161 @@ model MovimentacaoEstoque {
 
   @@index([produto_id])
   @@map("movimentacoes_estoque")
+}
+
+model RFQ {
+  id          String             @id @default(uuid())
+  codigo      String             @unique // Ex: RFQ-2025-001
+  status      String             @default("PENDING") // PENDING, RESPONDED, CLOSED
+  dataLimite  DateTime
+  items       RFQItem[]
+  propostas   PropostaFornecedor[]
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+}
+
+model RFQItem {
+  id         String   @id @default(uuid())
+  rfqId      String
+  rfq        RFQ      @relation(fields: [rfqId], references: [id], onDelete: Cascade)
+  produtoId  String
+  produto    Produto  @relation(fields: [produtoId], references: [id])
+  quantidade Int
+}
+
+model PropostaFornecedor {
+  id           String             @id @default(uuid())
+  rfqId        String
+  rfq          RFQ                @relation(fields: [rfqId], references: [id])
+  fornecedorId String
+  fornecedor   Fornecedor         @relation(fields: [fornecedorId], references: [id])
+  status       String             @default("SUBMITTED") // SUBMITTED, APPROVED, REJECTED
+  prazoEntrega Int // em dias
+  itens        PropostaItem[]
+  createdAt    DateTime           @default(now())
+}
+
+model PropostaItem {
+  id           String             @id @default(uuid())
+  propostaId   String
+  proposta     PropostaFornecedor @relation(fields: [propostaId], references: [id], onDelete: Cascade)
+  produtoId    String
+  produto      Produto            @relation(fields: [produtoId], references: [id])
+  precoUnitario Float
+  quantidade   Int
+}
+
+model PurchaseOrder {
+  id               String      @id @default(uuid())
+  codigo           String      @unique // Ex: PO-2025-001
+  fornecedorId     String
+  fornecedor       Fornecedor  @relation(fields: [fornecedorId], references: [id])
+  propostaId       String?
+  totalValue       Float
+  status           String      @default("EMITIDO") // EMITIDO, CONFIRMADO, FATURADO, ATRASADO
+  expectedDelivery DateTime
+  createdAt        DateTime    @default(now())
+}
+
+model CheckIn {
+  id            String   @id @default(uuid())
+  codigoCheckIn String   @unique // Ex: CHK-2025-001
+  placaVeiculo  String
+  motoristaNome String
+  transportador String
+  poCodigo      String
+  status        String   @default("AGUARDANDO") // AGUARDANDO, CONFERIDO, REJEITADO
+  createdAt     DateTime @default(now())
+}
+
+model ConferenciaFiscal {
+  id              String         @id @default(uuid())
+  poId            String
+  numeroNotaFiscal String
+  valorTotalNf    Float
+  divergenciaTotal Float
+  status          String         @default("CONCLUIDO") // CONCLUIDO, CONCLUIDO_COM_DIVERGENCIA
+  itens           ConfItem[]
+  createdAt       DateTime       @default(now())
+}
+
+model ConfItem {
+  id               String            @id @default(uuid())
+  conferenciaId    String
+  conferencia      ConferenciaFiscal @relation(fields: [conferenciaId], references: [id], onDelete: Cascade)
+  produtoId        String
+  quantidadePedido Int
+  quantidadeNota   Int
+  quantidadeFísica Int
+  divergente       Boolean
+}
+
+model InspecaoQualidade {
+  id              String   @id @default(uuid())
+  loteEstoqueId   String
+  statusAprovado  Boolean
+  parecerTecnico  String
+  temperatura     Float?
+  lacreIntegro    Boolean  @default(true)
+  embalagemIntegra Boolean @default(true)
+  usuarioId       String
+  createdAt       DateTime @default(now())
+}
+
+model InventarioAgendamento {
+  id           String            @id @default(uuid())
+  codigo       String            @unique // Ex: INV-2025-001
+  status       String            @default("AGENDADO") // AGENDADO, EM_ANDAMENTO, AGUARDANDO_APROVACAO, CONCLUIDO
+  dateAgenda   DateTime
+  responsavel  String
+  itens        InventarioItem[]
+  createdAt    DateTime          @default(now())
+}
+
+model InventarioItem {
+  id                   String                @id @default(uuid())
+  inventarioId         String
+  inventario           InventarioAgendamento @relation(fields: [inventarioId], references: [id], onDelete: Cascade)
+  produtoId            String
+  produto              Produto               @relation(fields: [produtoId], references: [id])
+  quantidadeSistema    Int
+  quantidadeContada    Int?
+  divergencia          Int?
+  statusAjuste         String                @default("PENDENTE") // PENDENTE, APROVADO, REJEITADO
+  justificativaAjuste  String?
+}
+
+model CampanhaValidade {
+  id           String             @id @default(uuid())
+  codigo       String             @unique // Ex: CMP-2025-001
+  status       String             @default("ATIVA") // ATIVA, ENCERRADA
+  descontoPct  Float
+  lotesCampanha LoteCampanhaItem[]
+  createdAt    DateTime           @default(now())
+}
+
+model LoteCampanhaItem {
+  id         String           @id @default(uuid())
+  campanhaId String
+  campanha   CampanhaValidade @relation(fields: [campanhaId], references: [id], onDelete: Cascade)
+  loteId     String
+}
+
+model PickingOrder {
+  id           String        @id @default(uuid())
+  codigo       String        @unique // Ex: PKG-2025-001
+  status       String        @default("PENDENTE") // PENDENTE, EM_SEPARACAO, PRONTO, DESPACHADO
+  solicitante  String
+  itens        PickingItem[]
+  createdAt    DateTime      @default(now())
+}
+
+model PickingItem {
+  id           String       @id @default(uuid())
+  pickingId    String
+  pickingOrder PickingOrder @relation(fields: [pickingId], references: [id], onDelete: Cascade)
+  produtoId    String
+  produto      Produto      @relation(fields: [produtoId], references: [id])
+  quantidade   Int
+  loteSeparado String? // O lote físico selecionado e validado
 }

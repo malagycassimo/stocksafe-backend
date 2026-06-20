@@ -951,6 +951,748 @@
                     }
                 }
             }
+        },
+        "/validade/campanhas": {
+            "post": {
+                "summary": "Criar uma nova campanha de validade para lotes com desconto",
+                "tags": [
+                    "Validade"
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "descontoPct": {
+                                        "type": "number",
+                                        "example": 15.0
+                                    },
+                                    "loteIds": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string",
+                                            "format": "uuid"
+                                        }
+                                    }
+                                },
+                                "required": [
+                                    "descontoPct",
+                                    "loteIds"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Campanha criada com sucesso"
+                    },
+                    "400": {
+                        "description": "Parâmetros inválidos"
+                    }
+                }
+            }
+        },
+        "/rfqs": {
+            "post": {
+                "summary": "Criar uma nova solicitação de cotação (RFQ)",
+                "tags": [
+                    "Compras"
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "dataLimite": {
+                                        "type": "string",
+                                        "format": "date-time",
+                                        "example": "2026-07-01T12:00:00Z"
+                                    },
+                                    "items": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "object",
+                                            "properties": {
+                                                "produtoId": {
+                                                    "type": "string",
+                                                    "format": "uuid"
+                                                },
+                                                "quantidade": {
+                                                    "type": "integer",
+                                                    "example": 100
+                                                }
+                                            },
+                                            "required": [
+                                                "produtoId",
+                                                "quantidade"
+                                            ]
+                                        }
+                                    }
+                                },
+                                "required": [
+                                    "dataLimite",
+                                    "items"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "RFQ criada com sucesso"
+                    },
+                    "400": {
+                        "description": "Parâmetros inválidos"
+                    }
+                }
+            }
+        },
+        "/propostas": {
+            "post": {
+                "summary": "Submeter proposta de fornecedor para uma RFQ",
+                "tags": [
+                    "Compras"
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "rfqId": {
+                                        "type": "string",
+                                        "format": "uuid"
+                                    },
+                                    "fornecedorId": {
+                                        "type": "string",
+                                        "format": "uuid"
+                                    },
+                                    "prazoEntrega": {
+                                        "type": "integer",
+                                        "example": 5
+                                    },
+                                    "itens": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "object",
+                                            "properties": {
+                                                "produtoId": {
+                                                    "type": "string",
+                                                    "format": "uuid"
+                                                },
+                                                "precoUnitario": {
+                                                    "type": "number",
+                                                    "example": 250.5
+                                                },
+                                                "quantidade": {
+                                                    "type": "integer",
+                                                    "example": 100
+                                                }
+                                            },
+                                            "required": [
+                                                "produtoId",
+                                                "precoUnitario",
+                                                "quantidade"
+                                            ]
+                                        }
+                                    }
+                                },
+                                "required": [
+                                    "rfqId",
+                                    "fornecedorId",
+                                    "prazoEntrega",
+                                    "itens"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Proposta submetida com sucesso"
+                    },
+                    "400": {
+                        "description": "Parâmetros inválidos"
+                    }
+                }
+            }
+        },
+        "/rfqs/{id}/propostas": {
+            "get": {
+                "summary": "Obter comparativo de propostas para uma RFQ específica",
+                "tags": [
+                    "Compras"
+                ],
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Comparativo de propostas retornado com sucesso"
+                    },
+                    "400": {
+                        "description": "ID inválido"
+                    },
+                    "404": {
+                        "description": "RFQ não encontrada"
+                    }
+                }
+            }
+        },
+        "/recebimento/checkin": {
+            "post": {
+                "summary": "Registar check-in de entrega física no armazém",
+                "tags": [
+                    "Recebimento"
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "placaVeiculo": {
+                                        "type": "string",
+                                        "example": "MLD-82-GP"
+                                    },
+                                    "motoristaNome": {
+                                        "type": "string",
+                                        "example": "Carlos Tembe"
+                                    },
+                                    "transportador": {
+                                        "type": "string",
+                                        "example": "Logística Moçambique"
+                                    },
+                                    "poCodigo": {
+                                        "type": "string",
+                                        "example": "PO-2026-001"
+                                    }
+                                },
+                                "required": [
+                                    "placaVeiculo",
+                                    "motoristaNome",
+                                    "transportador",
+                                    "poCodigo"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Check-in registado com sucesso"
+                    },
+                    "400": {
+                        "description": "Parâmetros inválidos"
+                    }
+                }
+            }
+        },
+        "/recebimento/conferencia": {
+            "post": {
+                "summary": "Submeter conferência física e fiscal da nota fiscal",
+                "tags": [
+                    "Recebimento"
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "poId": {
+                                        "type": "string",
+                                        "format": "uuid"
+                                    },
+                                    "numeroNotaFiscal": {
+                                        "type": "string",
+                                        "example": "NF-99823"
+                                    },
+                                    "valorTotalNf": {
+                                        "type": "number",
+                                        "example": 25000.0
+                                    },
+                                    "itens": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "object",
+                                            "properties": {
+                                                "produtoId": {
+                                                    "type": "string",
+                                                    "format": "uuid"
+                                                },
+                                                "quantidadePedido": {
+                                                    "type": "integer",
+                                                    "example": 100
+                                                },
+                                                "quantidadeNota": {
+                                                    "type": "integer",
+                                                    "example": 100
+                                                },
+                                                "quantidadeFísica": {
+                                                    "type": "integer",
+                                                    "example": 98
+                                                }
+                                            },
+                                            "required": [
+                                                "produtoId",
+                                                "quantidadePedido",
+                                                "quantidadeNota",
+                                                "quantidadeFísica"
+                                            ]
+                                        }
+                                    }
+                                },
+                                "required": [
+                                    "poId",
+                                    "numeroNotaFiscal",
+                                    "valorTotalNf",
+                                    "itens"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Conferência processada com sucesso"
+                    },
+                    "400": {
+                        "description": "Parâmetros inválidos"
+                    }
+                }
+            }
+        },
+        "/purchase-orders": {
+            "post": {
+                "summary": "Criar uma ordem de compra (PO)",
+                "tags": [
+                    "Recebimento"
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "codigo": {
+                                        "type": "string",
+                                        "example": "PO-2026-001"
+                                    },
+                                    "fornecedorId": {
+                                        "type": "string",
+                                        "format": "uuid"
+                                    },
+                                    "propostaId": {
+                                        "type": "string",
+                                        "format": "uuid"
+                                    },
+                                    "totalValue": {
+                                        "type": "number",
+                                        "example": 50000.0
+                                    },
+                                    "expectedDelivery": {
+                                        "type": "string",
+                                        "format": "date-time",
+                                        "example": "2026-07-10T18:00:00Z"
+                                    }
+                                },
+                                "required": [
+                                    "codigo",
+                                    "fornecedorId",
+                                    "totalValue",
+                                    "expectedDelivery"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Ordem de compra criada com sucesso"
+                    },
+                    "400": {
+                        "description": "Parâmetros inválidos"
+                    }
+                }
+            },
+            "get": {
+                "summary": "Listar todas as ordens de compra",
+                "tags": [
+                    "Recebimento"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lista de ordens de compra retornada com sucesso"
+                    }
+                }
+            }
+        },
+        "/qualidade/inspecao": {
+            "post": {
+                "summary": "Registar inspecção de qualidade para um lote",
+                "tags": [
+                    "Qualidade"
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "loteEstoqueId": {
+                                        "type": "string",
+                                        "format": "uuid"
+                                    },
+                                    "statusAprovado": {
+                                        "type": "boolean",
+                                        "example": true
+                                    },
+                                    "parecerTecnico": {
+                                        "type": "string",
+                                        "example": "Lote aprovado em perfeitas condições sanitárias e embalagens íntegras."
+                                    },
+                                    "temperatura": {
+                                        "type": "number",
+                                        "example": 4.5
+                                    },
+                                    "lacreIntegro": {
+                                        "type": "boolean",
+                                        "default": true
+                                    },
+                                    "embalagemIntegra": {
+                                        "type": "boolean",
+                                        "default": true
+                                    },
+                                    "usuarioId": {
+                                        "type": "string"
+                                    }
+                                },
+                                "required": [
+                                    "loteEstoqueId",
+                                    "statusAprovado",
+                                    "parecerTecnico",
+                                    "usuarioId"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Inspecção registada com sucesso"
+                    },
+                    "400": {
+                        "description": "Parâmetros inválidos"
+                    }
+                }
+            }
+        },
+        "/inventarios": {
+            "post": {
+                "summary": "Agendar um novo inventário",
+                "tags": [
+                    "Inventários"
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "dateAgenda": {
+                                        "type": "string",
+                                        "format": "date-time",
+                                        "example": "2026-06-25T08:00:00Z"
+                                    },
+                                    "responsavel": {
+                                        "type": "string",
+                                        "example": "Manuel Nhaca"
+                                    }
+                                },
+                                "required": [
+                                    "dateAgenda",
+                                    "responsavel"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Inventário agendado com sucesso"
+                    },
+                    "400": {
+                        "description": "Parâmetros inválidos"
+                    }
+                }
+            }
+        },
+        "/inventarios/{id}/contar": {
+            "post": {
+                "summary": "Submeter contagem física para um inventário específico",
+                "tags": [
+                    "Inventários"
+                ],
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "itens": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "object",
+                                            "properties": {
+                                                "produtoId": {
+                                                    "type": "string",
+                                                    "format": "uuid"
+                                                },
+                                                "quantidadeContada": {
+                                                    "type": "integer",
+                                                    "example": 50
+                                                }
+                                            },
+                                            "required": [
+                                                "produtoId",
+                                                "quantidadeContada"
+                                            ]
+                                        }
+                                    }
+                                },
+                                "required": [
+                                    "itens"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Contagem submetida com sucesso"
+                    },
+                    "400": {
+                        "description": "Parâmetros inválidos"
+                    },
+                    "404": {
+                        "description": "Inventário não encontrado"
+                    }
+                }
+            }
+        },
+        "/inventarios/{id}/ajustar": {
+            "post": {
+                "summary": "Aprovar ou rejeitar divergências e realizar o ajuste de estoque",
+                "tags": [
+                    "Inventários"
+                ],
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "itensAprovados": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string",
+                                            "format": "uuid"
+                                        }
+                                    },
+                                    "itensRejeitados": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string",
+                                            "format": "uuid"
+                                        }
+                                    },
+                                    "justificativaAjuste": {
+                                        "type": "string",
+                                        "example": "Aprovadas as perdas por quebra física e rejeitados os desvios de contagem manual."
+                                    }
+                                },
+                                "required": [
+                                    "itensAprovados",
+                                    "itensRejeitados",
+                                    "justificativaAjuste"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Ajuste processado com sucesso"
+                    },
+                    "400": {
+                        "description": "Parâmetros inválidos"
+                    },
+                    "404": {
+                        "description": "Inventário não encontrado"
+                    }
+                }
+            }
+        },
+        "/expedicao/ordens": {
+            "post": {
+                "summary": "Criar uma ordem de separação/picking",
+                "tags": [
+                    "Expedição"
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "solicitante": {
+                                        "type": "string",
+                                        "example": "Restaurante Central"
+                                    },
+                                    "itens": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "object",
+                                            "properties": {
+                                                "produtoId": {
+                                                    "type": "string",
+                                                    "format": "uuid"
+                                                },
+                                                "quantidade": {
+                                                    "type": "integer",
+                                                    "example": 20
+                                                }
+                                            },
+                                            "required": [
+                                                "produtoId",
+                                                "quantidade"
+                                            ]
+                                        }
+                                    }
+                                },
+                                "required": [
+                                    "solicitante",
+                                    "itens"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Ordem de separação criada com sucesso"
+                    },
+                    "400": {
+                        "description": "Parâmetros inválidos"
+                    }
+                }
+            }
+        },
+        "/expedicao/picking/concluir": {
+            "post": {
+                "summary": "Concluir a separação e validar os lotes expedidos",
+                "tags": [
+                    "Expedição"
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "pickingId": {
+                                        "type": "string",
+                                        "format": "uuid"
+                                    },
+                                    "itensSeparados": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "object",
+                                            "properties": {
+                                                "produtoId": {
+                                                    "type": "string",
+                                                    "format": "uuid"
+                                                },
+                                                "quantidade": {
+                                                    "type": "integer",
+                                                    "example": 20
+                                                },
+                                                "loteSeparado": {
+                                                    "type": "string",
+                                                    "example": "LOT2026-A1"
+                                                }
+                                            },
+                                            "required": [
+                                                "produtoId",
+                                                "quantidade",
+                                                "loteSeparado"
+                                            ]
+                                        }
+                                    }
+                                },
+                                "required": [
+                                    "pickingId",
+                                    "itensSeparados"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Picking concluído com sucesso"
+                    },
+                    "400": {
+                        "description": "Parâmetros inválidos"
+                    }
+                }
+            }
         }
     },
     "components": {
