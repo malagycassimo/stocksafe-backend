@@ -62,7 +62,7 @@ export class ReceivingController {
     async getPurchaseOrder(req: Request, res: Response, next: NextFunction): Promise<void> {
         try {
             const { id } = req.params;
-            if (!id) {
+            if (!id || typeof id !== 'string') {
                 throw new AppError('O parâmetro id é obrigatório.', 400);
             }
             const service = new ReceivingService();

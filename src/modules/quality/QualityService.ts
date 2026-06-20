@@ -117,8 +117,7 @@ export class QualityService {
                     sku: 'FRS-045',
                     descricao: 'Filé de Frango Congelado - 1kg',
                     categoria: 'Congelado',
-                    unidade_medida: 'KG',
-                    preco_custo: 150.00
+                    unidade_medida: 'KG'
                 }
             });
         }
@@ -128,7 +127,8 @@ export class QualityService {
             local = await prisma.local.create({
                 data: {
                     codigo: 'QUA-ZONA-A',
-                    nome: 'Quarentena - Zona A'
+                    nome: 'Quarentena - Zona A',
+                    tipo: 'ZONA'
                 }
             });
         }
@@ -155,8 +155,7 @@ export class QualityService {
                     sku: 'ALM-001',
                     descricao: 'Arroz Branco Tipo 1 - Pacote 5kg',
                     categoria: 'Geral',
-                    unidade_medida: 'UN',
-                    preco_custo: 350.00
+                    unidade_medida: 'UN'
                 }
             });
         }
