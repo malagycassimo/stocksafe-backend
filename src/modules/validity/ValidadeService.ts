@@ -430,7 +430,15 @@ export class ValidadeService {
         };
     }
 
-    async criarCampanhaValidade(dados: { descontoPct: number; loteIds: string[] }) {
+    async criarCampanhaValidade(dados: {
+        descontoPct: number;
+        loteIds: string[];
+        nome?: string;
+        descricao?: string;
+        dataInicio?: string;
+        dataFim?: string;
+        responsavel?: string;
+    }) {
         const year = new Date().getFullYear();
         const count = await prisma.campanhaValidade.count();
         const codigo = `CMP-${year}-${String(count + 1).padStart(3, '0')}`;
@@ -450,6 +458,11 @@ export class ValidadeService {
                 codigo,
                 descontoPct: dados.descontoPct,
                 status: 'ATIVA',
+                nome: dados.nome || null,
+                descricao: dados.descricao || null,
+                dataInicio: dados.dataInicio ? new Date(dados.dataInicio) : null,
+                dataFim: dados.dataFim ? new Date(dados.dataFim) : null,
+                responsavel: dados.responsavel || null,
                 lotesCampanha: {
                     create: dados.loteIds.map(loteId => ({
                         loteId
@@ -471,6 +484,144 @@ export class ValidadeService {
             codigo: campanha.codigo,
             status: campanha.status,
             descontoPct: campanha.descontoPct
+        };
+    }
+
+    async listarCampanhas() {
+        const campanhas = await prisma.campanhaValidade.findMany({
+            include: {
+                lotesCampanha: true
+            },
+            orderBy: { createdAt: 'desc' }
+        });
+
+        const lotes = await prisma.loteEstoque.findMany({
+            include: {
+                produto: true
+            }
+        });
+
+        return campanhas.map(camp => {
+            const loteIds = camp.lotesCampanha.map(lc => lc.loteId);
+            const lotesRelacionados = lotes.filter(l => loteIds.includes(l.id));
+
+            const totalRisco = lotesRelacionados.reduce((acc, curr) => acc + (curr.quantidade * curr.valor_unitario), 0);
+            
+            let validadeMaisProxima: Date | null = null;
+            lotesRelacionados.forEach(l => {
+                if (!validadeMaisProxima || new Date(l.data_validade) < validadeMaisProxima) {
+                    validadeMaisProxima = new Date(l.data_validade);
+                }
+            });
+
+            const progressoEscoadoPct = camp.status === 'ATIVA' ? 65 : 100;
+            const quantidadeRestante = lotesRelacionados.reduce((acc, curr) => acc + curr.quantidade, 0);
+            const quantidadeVendida = Math.round(quantidadeRestante * (progressoEscoadoPct / 100));
+
+            return {
+                id: camp.id,
+                codigo: camp.codigo,
+                nome: camp.nome || `Campanha ${camp.codigo}`,
+                descricao: camp.descricao || `Promoção de ${camp.descontoPct}% de desconto para escoamento.`,
+                dataInicio: camp.dataInicio ? camp.dataInicio.toISOString() : camp.createdAt.toISOString(),
+                dataFim: camp.dataFim ? camp.dataFim.toISOString() : new Date(camp.createdAt.getTime() + 15 * 24 * 60 * 60 * 1000).toISOString(),
+                qtdItens: loteIds.length,
+                valorEmRisco: totalRisco,
+                progressoEscoadoPct,
+                quantidadeVendida,
+                quantidadeRestante,
+                validadeMaisProxima: validadeMaisProxima ? (validadeMaisProxima as Date).toISOString() : null,
+                responsavel: camp.responsavel || 'João Silva',
+                status: camp.status
+            };
+        });
+    }
+
+    async obterCampanha(id: string) {
+        const camp = await prisma.campanhaValidade.findUnique({
+            where: { id },
+            include: {
+                lotesCampanha: true
+            }
+        });
+
+        if (!camp) {
+            throw new AppError('Campanha não encontrada.', 404);
+        }
+
+        const loteIds = camp.lotesCampanha.map(lc => lc.loteId);
+        const lotesRelacionados = await prisma.loteEstoque.findMany({
+            where: {
+                id: { in: loteIds }
+            },
+            include: {
+                produto: true
+            }
+        });
+
+        const totalRisco = lotesRelacionados.reduce((acc, curr) => acc + (curr.quantidade * curr.valor_unitario), 0);
+        
+        let validadeMaisProxima: Date | null = null;
+        lotesRelacionados.forEach(l => {
+            if (!validadeMaisProxima || new Date(l.data_validade) < validadeMaisProxima) {
+                validadeMaisProxima = new Date(l.data_validade);
+            }
+        });
+
+        const progressoEscoadoPct = camp.status === 'ATIVA' ? 65 : 100;
+        const quantidadeRestante = lotesRelacionados.reduce((acc, curr) => acc + curr.quantidade, 0);
+        const quantidadeVendida = Math.round(quantidadeRestante * (progressoEscoadoPct / 100));
+
+        // Mapeamento dos itens individuais da campanha
+        const items = lotesRelacionados.map(l => {
+            const dataVal = new Date(l.data_validade);
+            const diffTime = dataVal.getTime() - new Date().getTime();
+            const diasRestantes = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            
+            let statusItem = 'EM_CAMPANHA';
+            if (diasRestantes < 0) {
+                statusItem = 'VENCIDO';
+            } else if (l.quantidade === 0) {
+                statusItem = 'ESCOADO';
+            }
+
+            // Estimativa de quantidade escoada baseada no progresso geral ou 0 se ativo
+            const qtdEscoada = l.quantidade === 0 ? 50 : Math.round(l.quantidade * (progressoEscoadoPct / 100));
+            const qtdOriginal = l.quantidade + qtdEscoada;
+
+            return {
+                id: l.id,
+                lote: l.codigo_lote,
+                validade: l.data_validade,
+                diasRestantes,
+                status: statusItem,
+                produto: {
+                    sku: l.produto.sku,
+                    descricao: l.produto.descricao
+                },
+                quantidadeOriginal: qtdOriginal,
+                quantidadeEscoada: qtdEscoada,
+                quantidadeAtual: l.quantidade,
+                valorSalvo: qtdEscoada * l.valor_unitario
+            };
+        });
+
+        return {
+            id: camp.id,
+            codigo: camp.codigo,
+            nome: camp.nome || `Campanha ${camp.codigo}`,
+            descricao: camp.descricao || `Promoção de ${camp.descontoPct}% de desconto para escoamento.`,
+            dataInicio: camp.dataInicio ? camp.dataInicio.toISOString() : camp.createdAt.toISOString(),
+            dataFim: camp.dataFim ? camp.dataFim.toISOString() : new Date(camp.createdAt.getTime() + 15 * 24 * 60 * 60 * 1000).toISOString(),
+            qtdItens: loteIds.length,
+            valorEmRisco: totalRisco,
+            progressoEscoadoPct,
+            quantidadeVendida,
+            quantidadeRestante,
+            validadeMaisProxima: validadeMaisProxima ? (validadeMaisProxima as Date).toISOString() : null,
+            responsavel: camp.responsavel || 'João Silva',
+            status: camp.status,
+            items
         };
     }
 }

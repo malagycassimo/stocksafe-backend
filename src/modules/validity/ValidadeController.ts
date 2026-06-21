@@ -64,14 +64,45 @@ export class ValidadeController {
     // POST /validade/campanhas
     async criarCampanhaValidade(req: Request, res: Response, next: NextFunction): Promise<void> {
         try {
-            const { descontoPct, loteIds } = req.body;
+            const { descontoPct, loteIds, nome, descricao, dataInicio, dataFim, responsavel } = req.body;
             if (descontoPct === undefined || !loteIds || !Array.isArray(loteIds) || loteIds.length === 0) {
                 throw new AppError('Os campos descontoPct e loteIds são obrigatórios.', 400);
             }
 
             const validadeService = new ValidadeService();
-            const resultado = await validadeService.criarCampanhaValidade({ descontoPct, loteIds });
+            const resultado = await validadeService.criarCampanhaValidade({
+                descontoPct,
+                loteIds,
+                nome,
+                descricao,
+                dataInicio,
+                dataFim,
+                responsavel
+            });
             res.status(201).json(resultado);
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    // GET /validade/campanhas
+    async listCampanhas(req: Request, res: Response, next: NextFunction): Promise<void> {
+        try {
+            const validadeService = new ValidadeService();
+            const resultado = await validadeService.listarCampanhas();
+            res.status(200).json(resultado);
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    // GET /validade/campanhas/:id
+    async obterCampanha(req: Request, res: Response, next: NextFunction): Promise<void> {
+        try {
+            const { id } = req.params;
+            const validadeService = new ValidadeService();
+            const resultado = await validadeService.obterCampanha(id);
+            res.status(200).json(resultado);
         } catch (error) {
             next(error);
         }

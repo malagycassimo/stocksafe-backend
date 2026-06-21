@@ -36,13 +36,13 @@ export class ReceivingController {
     // Purchase Order routes
     async createPurchaseOrder(req: Request, res: Response, next: NextFunction): Promise<void> {
         try {
-            const { codigo, fornecedorId, propostaId, totalValue, expectedDelivery } = req.body;
+            const { codigo, fornecedorId, propostaId, totalValue, expectedDelivery, itens } = req.body;
             if (!codigo || !fornecedorId || totalValue === undefined || !expectedDelivery) {
                 throw new AppError('Os campos codigo, fornecedorId, totalValue e expectedDelivery são obrigatórios.', 400);
             }
 
             const service = new ReceivingService();
-            const resultado = await service.createPurchaseOrder({ codigo, fornecedorId, propostaId, totalValue, expectedDelivery });
+            const resultado = await service.createPurchaseOrder({ codigo, fornecedorId, propostaId, totalValue, expectedDelivery, itens });
             res.status(201).json(resultado);
         } catch (error) {
             next(error);
@@ -67,6 +67,20 @@ export class ReceivingController {
             }
             const service = new ReceivingService();
             const resultado = await service.getPurchaseOrder(id);
+            res.status(200).json(resultado);
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    async cancelPurchaseOrder(req: Request, res: Response, next: NextFunction): Promise<void> {
+        try {
+            const { id } = req.params;
+            if (!id || typeof id !== 'string') {
+                throw new AppError('O parâmetro id é obrigatório.', 400);
+            }
+            const service = new ReceivingService();
+            const resultado = await service.cancelPurchaseOrder(id);
             res.status(200).json(resultado);
         } catch (error) {
             next(error);

@@ -75,4 +75,19 @@ export class PurchasingController {
             next(error);
         }
     }
+
+    async cancelRFQ(req: Request, res: Response, next: NextFunction): Promise<void> {
+        try {
+            const { id } = req.params;
+            if (!id || typeof id !== 'string') {
+                throw new AppError('O ID da RFQ é obrigatório.', 400);
+            }
+
+            const service = new PurchasingService();
+            const resultado = await service.cancelRFQ(id);
+            res.status(200).json(resultado);
+        } catch (error) {
+            next(error);
+        }
+    }
 }

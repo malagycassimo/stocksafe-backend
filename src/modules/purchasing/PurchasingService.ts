@@ -131,10 +131,12 @@ export class PurchasingService {
             const valorTotal = prop.itens.reduce((acc, item) => acc + (item.precoUnitario * item.quantidade), 0);
             return {
                 propostaId: prop.id,
+                fornecedorId: prop.fornecedorId,
                 fornecedorNome: prop.fornecedor.razao_social,
                 prazoEntrega: prop.prazoEntrega,
                 valorTotal,
                 itens: prop.itens.map(item => ({
+                    produtoId: item.produtoId,
                     produtoSku: item.produto.sku,
                     produtoDescricao: item.produto.descricao,
                     precoUnitario: item.precoUnitario,
@@ -150,17 +152,71 @@ export class PurchasingService {
         };
     }
 
+    private mapRfqStatus(status: string, propostasCount: number): string {
+        const lower = status.toLowerCase();
+        if (lower === 'closed' || lower === 'cancelado') return 'closed';
+        if (lower === 'pending') return 'Aguardando Respostas';
+        if (lower === 'responded') {
+            return propostasCount > 1 ? 'Totalmente Respondida' : 'Parcialmente Respondida';
+        }
+        return status;
+    }
+
     async listRFQs() {
-        return await prisma.rFQ.findMany({
+        const rfqs = await prisma.rFQ.findMany({
             include: {
                 items: {
                     include: {
                         produto: true
                     }
+                },
+                propostas: {
+                    include: {
+                        fornecedor: true,
+                        itens: {
+                            include: {
+                                produto: true
+                            }
+                        }
+                    }
                 }
             },
             orderBy: { createdAt: 'desc' }
         });
+
+        return rfqs.map(rfq => ({
+            id: rfq.id,
+            codigo: rfq.codigo,
+            status: this.mapRfqStatus(rfq.status, rfq.propostas.length),
+            dataLimite: rfq.dataLimite.toISOString(),
+            createdAt: rfq.createdAt.toISOString(),
+            items: rfq.items.map(item => ({
+                id: item.id,
+                produtoId: item.produtoId,
+                quantidade: item.quantidade,
+                produto: {
+                    sku: item.produto.sku,
+                    descricao: item.produto.descricao,
+                    unidade_medida: item.produto.unidade_medida
+                }
+            })),
+            propostas: rfq.propostas.map(proposta => ({
+                id: proposta.id,
+                fornecedorId: proposta.fornecedorId,
+                status: proposta.status,
+                prazoEntrega: proposta.prazoEntrega,
+                fornecedor: {
+                    razao_social: proposta.fornecedor.razao_social
+                },
+                itens: proposta.itens.map(item => ({
+                    produtoId: item.produtoId,
+                    produtoSku: item.produto.sku,
+                    produtoDescricao: item.produto.descricao,
+                    precoUnitario: item.precoUnitario,
+                    quantidade: item.quantidade
+                }))
+            }))
+        }));
     }
 
     async getRFQ(id: string) {
@@ -189,6 +245,60 @@ export class PurchasingService {
             throw new AppError('RFQ não encontrada.', 404);
         }
 
-        return rfq;
+        return {
+            id: rfq.id,
+            codigo: rfq.codigo,
+            status: this.mapRfqStatus(rfq.status, rfq.propostas.length),
+            dataLimite: rfq.dataLimite.toISOString(),
+            createdAt: rfq.createdAt.toISOString(),
+            items: rfq.items.map(item => ({
+                id: item.id,
+                produtoId: item.produtoId,
+                quantidade: item.quantidade,
+                produto: {
+                    sku: item.produto.sku,
+                    descricao: item.produto.descricao,
+                    unidade_medida: item.produto.unidade_medida
+                }
+            })),
+            propostas: rfq.propostas.map(proposta => ({
+                id: proposta.id,
+                fornecedorId: proposta.fornecedorId,
+                status: proposta.status,
+                prazoEntrega: proposta.prazoEntrega,
+                fornecedor: {
+                    razao_social: proposta.fornecedor.razao_social
+                },
+                itens: proposta.itens.map(item => ({
+                    produtoId: item.produtoId,
+                    produtoSku: item.produto.sku,
+                    produtoDescricao: item.produto.descricao,
+                    precoUnitario: item.precoUnitario,
+                    quantidade: item.quantidade
+                }))
+            }))
+        };
+    }
+
+    async cancelRFQ(id: string) {
+        const rfq = await prisma.rFQ.findUnique({
+            where: { id }
+        });
+
+        if (!rfq) {
+            throw new AppError('RFQ não encontrada.', 404);
+        }
+
+        const updatedRfq = await prisma.rFQ.update({
+            where: { id },
+            data: { status: 'CLOSED' }
+        });
+
+        return {
+            id: updatedRfq.id,
+            codigo: updatedRfq.codigo,
+            status: updatedRfq.status,
+            createdAt: updatedRfq.createdAt.toISOString()
+        };
     }
 }

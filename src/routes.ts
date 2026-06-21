@@ -85,6 +85,8 @@ routes.post('/validade/descartar', (req, res, next) => validadeController.descar
 routes.post('/validade/descartar-em-massa', (req, res, next) => validadeController.descartarEmMassa(req, res, next));
 routes.post('/validade/campanha', (req, res, next) => validadeController.campanha(req, res, next));
 routes.post('/validade/campanhas', (req, res, next) => validadeController.criarCampanhaValidade(req, res, next));
+routes.get('/validade/campanhas', (req, res, next) => validadeController.listCampanhas(req, res, next));
+routes.get('/validade/campanhas/:id', (req, res, next) => validadeController.obterCampanha(req, res, next));
 
 // 🛒 Rotas de Compras
 routes.get('/rfqs', (req, res, next) => purchasingController.listRFQs(req, res, next));
@@ -92,6 +94,7 @@ routes.get('/rfqs/:id', (req, res, next) => purchasingController.getRFQ(req, res
 routes.post('/rfqs', (req, res, next) => purchasingController.createRFQ(req, res, next));
 routes.post('/propostas', (req, res, next) => purchasingController.submitProposta(req, res, next));
 routes.get('/rfqs/:id/propostas', (req, res, next) => purchasingController.getComparativoPropostas(req, res, next));
+routes.delete('/rfqs/:id', (req, res, next) => purchasingController.cancelRFQ(req, res, next));
 
 // 🚚 Rotas de Recebimento
 routes.post('/recebimento/checkin', (req, res, next) => receivingController.createCheckIn(req, res, next));
@@ -99,6 +102,7 @@ routes.post('/recebimento/conferencia', (req, res, next) => receivingController.
 routes.post('/purchase-orders', (req, res, next) => receivingController.createPurchaseOrder(req, res, next));
 routes.get('/purchase-orders', (req, res, next) => receivingController.listPurchaseOrders(req, res, next));
 routes.get('/purchase-orders/:id', (req, res, next) => receivingController.getPurchaseOrder(req, res, next));
+routes.delete('/purchase-orders/:id', (req, res, next) => receivingController.cancelPurchaseOrder(req, res, next));
 
 // 🔬 Rotas de Qualidade
 routes.post('/qualidade/inspecao', (req, res, next) => qualityController.createInspecao(req, res, next));

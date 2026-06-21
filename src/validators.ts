@@ -38,7 +38,7 @@ export const createProdutoSchema = z.object({
     vida_util_dias: z.number().int().nonnegative().default(0),
     politica_expedicao: z.string().default('FEFO'),
     tipo_controle_validade: z.string().default('PORCENTAGEM'),
-    validade_min_recebimento: z.number().min(0).max(100).default(70.0),
+    validade_min_recebimento: z.number().min(0).default(70.0),
     validade_min_cliente_dias: z.number().int().nonnegative().default(0),
     alertas_habilitados: z.boolean().default(true),
     alertas_dias_config: z.any().optional().nullable(),
@@ -54,7 +54,7 @@ export const createProdutoSchema = z.object({
     // Aba 4: Armazenagem
     condicao_temperatura: z.string().default('Ambiente'),
     condicao_umidade: z.string().default('Ambiente'),
-    restricoes_armazenagem: z.any().optional().nullable(),
+    restricoes_armazenagem: z.string().optional().nullable(),
     peso_unidade: z.number().nonnegative().default(0.0),
     unidade_peso: z.string().default('KG'),
     comprimento_cm: z.number().nonnegative().default(0.0),

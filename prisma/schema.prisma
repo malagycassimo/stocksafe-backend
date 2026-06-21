@@ -415,6 +415,11 @@ model CampanhaValidade {
   codigo       String             @unique // Ex: CMP-2025-001
   status       String             @default("ATIVA") // ATIVA, ENCERRADA
   descontoPct  Float
+  nome         String?
+  descricao    String?
+  dataInicio   DateTime?
+  dataFim      DateTime?
+  responsavel  String?
   lotesCampanha LoteCampanhaItem[]
   createdAt    DateTime           @default(now())
 }
