@@ -99,7 +99,7 @@ export class ValidadeController {
     // GET /validade/campanhas/:id
     async obterCampanha(req: Request, res: Response, next: NextFunction): Promise<void> {
         try {
-            const { id } = req.params;
+            const id = req.params.id as string;
             const validadeService = new ValidadeService();
             const resultado = await validadeService.obterCampanha(id);
             res.status(200).json(resultado);
